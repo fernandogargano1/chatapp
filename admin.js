@@ -89,7 +89,7 @@ router.route('/rooms/add')
 // });
 
 router.route('/rooms/edit/:id')
-    .get(function(req, res) {
+    .all(function(req, res, next) {
         const roomId = req.params.id;    
 
         // Get the room we want to edit.
@@ -98,21 +98,20 @@ router.route('/rooms/edit/:id')
             res.sendStatus(404);
             return;        
         }
+        res.locals.room = room;
+        next();
+    })
+    .get(function(req, res) {         
 
         // Pass this room to the view
-        res.render('edit', { room, baseUrl: req.baseUrl });
-    })
-    .post(function (req, res) { 
-        const roomId = req.params.id;    
+        // res.render('edit', { room: res.locals.room, baseUrl: req.baseUrl });
+        res.locals.baseUrl = req.baseUrl
+        res.render('edit');
+    })    
+    .post(function (req, res) {        
 
-        // Get the room we want to edit.
-        const room = _.find(rooms, r => r.id === roomId);
-        if (!room) {
-            res.sendStatus(404);
-            return;        
-        }
-
-        room.name = req.body.name;  
+        // room.name = req.body.name;  
+        res.locals.room.name = req.body.name
         
         // res.redirect('/admin/rooms');
         res.redirect(req.baseUrl + "/rooms");
