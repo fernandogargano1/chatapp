@@ -2,6 +2,8 @@ const express = require('express');
 const app = express();
 const passport = require('passport');
 
+require('./passport-init');
+
 app.set("views", "./views");
 app.set("view engine", "jade");
 
@@ -14,6 +16,26 @@ app.use(express.static('node_modules/jquery/dist'));
 // We use more powerful qs library to parse out key value pairs
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
+
+app.use(require('express-session')({
+    secret: 'keyboard cat',
+    resave: false,
+    saveUninitialized: false
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+
+var authRouter = require('./auth');
+app.use(authRouter);
+
+app.use(function(req, res, next) {
+    if (req.isAuthenticated()) {
+        next();
+        return;
+    }    
+
+    res.redirect('/login');
+});
 
 // require('express-debug')(app, {});
 
@@ -37,9 +59,6 @@ app.get('/', function (req, res, next) {
         
     // },1000);    
 });
-
-var authRouter = require('./auth');
-app.use(authRouter);
 
 var adminRouter = require('./admin');
 var apiRouter = require('./api');
