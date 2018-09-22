@@ -3,6 +3,7 @@ const express = require('express');
 const _ = require("lodash");
 const rooms = require('./data/rooms.json');
 let messages = require('./data/messages.json');
+const users = require('./data/users.json');
 
 const router = express.Router();
 module.exports = router;
@@ -16,7 +17,11 @@ router.route("/rooms/:roomId/messages")
         const roomId = req.params.roomId;
 
         const roomMessages = messages
-            .filter( m => m.roomId === roomId);
+            .filter( m => m.roomId === roomId)
+            .map(m => {
+                var user = _.find(users, u => u.id === m.userId);
+                return { text: `${user.name}: ${m.text}`};
+            });
 
         var room = _.find(rooms, r => r.id === roomId);
         if (!room) {
@@ -34,7 +39,7 @@ router.route("/rooms/:roomId/messages")
         const message = {
             roomId: roomId,
             text: req.body.text,
-            "userId": "44f885e8-87e9-4911-973c-4074188f408a",
+            "userId": req.user.id,
             "id": uuidv4() 
         };
 
